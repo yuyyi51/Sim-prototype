@@ -10,7 +10,6 @@ public class ServiceManager {
 
     private double time;
     private Queue<Event> eventQueue;
-    private List<Event> eventLog;
 
     ServiceManager(){
         registeredService = new HashMap<>();
@@ -18,7 +17,6 @@ public class ServiceManager {
 
         time = 0;
         eventQueue = new PriorityQueue<>();
-        eventLog = new LinkedList<>();
     }
 
     private Event nextEvent(){
@@ -38,11 +36,7 @@ public class ServiceManager {
         Event e;
         while ((e = nextEvent()) != null){
             e.trigger();
-            eventLog.add(e);
         }
-    }
-    public List<Event> getEventLog(){
-        return eventLog;
     }
 
     public ServiceManager registerService(Service service){

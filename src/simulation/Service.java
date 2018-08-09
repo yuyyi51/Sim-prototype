@@ -15,6 +15,7 @@ public class Service {
     private Map<Long, Request> requests;
     private List<String> dependence;
     private ServiceManager manager;
+    private List<State> workingLog;
 
     public Service(String serviceName, double processTime){
         this.serviceName = serviceName;
@@ -22,6 +23,7 @@ public class Service {
         jobQueue = new LinkedList<>();
         requests = new HashMap<>();
         dependence = new LinkedList<>();
+        workingLog = new LinkedList<>();
     }
 
     private void addJob(Request job){
@@ -38,11 +40,13 @@ public class Service {
     public void startJob(){
         Request request = jobQueue.peek();
         Logger.Log("当前时间：%.2f，服务 %s 开始执行请求 %d", manager.getTime(), serviceName, request.getId());
+        workingLog.add(new State(manager.getTime(), serviceName, "start"));
         registerFinishJobEvent();
     }
     public void finishJob(){
         Request request = jobQueue.poll();
         Logger.Log("当前时间：%.2f，服务 %s 结束执行请求 %d", manager.getTime(), serviceName, request.getId());
+        workingLog.add(new State(manager.getTime(), serviceName, "stop"));
         if (dependence.isEmpty()){
             //直接向上级调用发送响应
             sendResponseToService(request.getSender(), request.getId(), request.getPreviousRequestID());
@@ -121,5 +125,8 @@ public class Service {
     public void sendRequestAsEndpoint(double startTime, String target){
         Request request = new Request(startTime, serviceName);
         manager.registerEvent(new SendRequestEvent(startTime, serviceName, target, request));
+    }
+    public List<State> getWorkingLog(){
+        return workingLog;
     }
 }

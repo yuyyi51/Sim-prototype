@@ -43,7 +43,7 @@ public class Main {
         Request.resetID();
     }
 
-    public static List<Event> test3(){
+    public static ServiceManager test3(){
         ServiceManager manager = new ServiceManager();
         Service s0 = new Service("s0", 100);
         Service s1a = new Service("s1a", 500);
@@ -71,12 +71,16 @@ public class Main {
 
         manager.start();
         Request.resetID();
-        return manager.getEventLog();
+        return manager;
     }
     public static void main(String[] args) {
 	// write your code here
         //test1();
         //test2();
-        var log = test3();
+        var manager = test3();
+        var log = manager.findRegisteredService("s1b").getWorkingLog();
+        for (State state: log){
+            Logger.Log("%.2f %s", state.getTime(), state.getState());
+        }
     }
 }
