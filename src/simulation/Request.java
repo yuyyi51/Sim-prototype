@@ -6,12 +6,14 @@ public class Request {
     private String sender;
     private long previousRequestID;
     private int counter;
-    Request(String sender){
-        this(sender, -1);
+    private double startTime;
+    Request(double startTime, String sender){
+        this(startTime, sender, -1);
     }
-    Request(String sender, long previousRequestID){
+    Request(double startTime, String sender, long previousRequestID){
         id = sid++;
         counter = 0;
+        this.startTime = startTime;
         this.sender = sender;
         this.previousRequestID = previousRequestID;
     }
@@ -29,6 +31,9 @@ public class Request {
     }
     public int getCounter(){
         return counter;
+    }
+    public double getStartTime(){
+        return startTime;
     }
     public static void resetID(){
         sid = 0;

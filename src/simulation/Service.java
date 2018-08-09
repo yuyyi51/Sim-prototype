@@ -59,7 +59,7 @@ public class Service {
         }
     }
     private void sendRequestToService(String target, long previousReqID){
-        Request request = new Request(serviceName, previousReqID);
+        Request request = new Request(manager.getTime(), serviceName, previousReqID);
         SendRequestEvent event = new SendRequestEvent(manager.getTime(),serviceName, target, request);
         manager.registerEvent(event);
         Logger.Log("当前时间：%.2f，服务 %s 向服务 %s 发送请求，请求ID为 %d",manager.getTime(), serviceName, target, request.getId());
@@ -109,6 +109,7 @@ public class Service {
                     ,response.getReqID());
             if (request.addCounter() >= dependence.size()){
                 //该请求已完成
+                Logger.Log("当前时间：%.2f，服务 %s 对请求 %d 的操作已完成，用时 %.2f", manager.getTime(), serviceName, request.getId(), manager.getTime() - request.getStartTime());
                 sendResponseToService(request.getSender(), request.getId(), request.getPreviousRequestID());
                 requests.remove(response.getReqID());
             }
@@ -116,5 +117,9 @@ public class Service {
         else {
             Logger.Log("当前时间：%.2f，终端 %s 收到来自 %s 的响应，对应的请求ID为 %d", manager.getTime(), serviceName, response.getSender(), response.getReqID());
         }
+    }
+    public void sendRequestAsEndpoint(double startTime, String target){
+        Request request = new Request(startTime, serviceName);
+        manager.registerEvent(new SendRequestEvent(startTime, serviceName, target, request));
     }
 }

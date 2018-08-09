@@ -1,5 +1,6 @@
 package simulation.Events;
 
+import simulation.Service;
 import simulation.ServiceManager;
 
 public abstract class Event implements Comparable<Event> {

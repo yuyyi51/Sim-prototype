@@ -1,7 +1,10 @@
 package simulation;
 
 import Tool.Logger;
+import simulation.Events.Event;
 import simulation.Events.SendRequestEvent;
+
+import java.util.List;
 
 
 public class Main {
@@ -18,7 +21,7 @@ public class Main {
                 .registerService(s2)
                 .registerService(database)
                 .registerService(user);
-        manager.registerEvent(new SendRequestEvent(0, "user", "s1", new Request("user")));
+        user.sendRequestAsEndpoint(0, "s1");
         manager.start();
         Request.resetID();
     }
@@ -35,12 +38,12 @@ public class Main {
                 .registerService(s2)
                 .registerService(s3)
                 .registerService(user);
-        manager.registerEvent(new SendRequestEvent(0, "user", "s1", new Request("user")));
+        user.sendRequestAsEndpoint(0, "s1");
         manager.start();
         Request.resetID();
     }
 
-    public static void test3(){
+    public static List<Event> test3(){
         ServiceManager manager = new ServiceManager();
         Service s0 = new Service("s0", 100);
         Service s1a = new Service("s1a", 500);
@@ -64,16 +67,16 @@ public class Main {
                 .registerService(s2c)
                 .registerService(database)
                 .registerService(user);
-        Request request = new Request("user");
-        manager.registerEvent(new SendRequestEvent(0,"user","s0",request));
+        user.sendRequestAsEndpoint(0, "s0");
 
         manager.start();
         Request.resetID();
+        return manager.getEventLog();
     }
     public static void main(String[] args) {
 	// write your code here
         //test1();
         //test2();
-        test3();
+        var log = test3();
     }
 }
