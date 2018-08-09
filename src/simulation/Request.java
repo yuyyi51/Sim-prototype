@@ -30,4 +30,7 @@ public class Request {
     public int getCounter(){
         return counter;
     }
+    public static void resetID(){
+        sid = 0;
+    }
 }

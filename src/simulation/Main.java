@@ -6,8 +6,41 @@ import simulation.Events.SendRequestEvent;
 
 public class Main {
 
-    public static void main(String[] args) {
-	// write your code here
+    public static void test1(){
+        ServiceManager manager = new ServiceManager();
+        Service s1 = new Service("s1", 500);
+        Service s2 = new Service("s2", 1000);
+        Service database = new Service("database", 300);
+        s1.addDependence("s2");
+        s2.addDependence("database");
+        Service user = new Service("user", 0);
+        manager.registerService(s1)
+                .registerService(s2)
+                .registerService(database)
+                .registerService(user);
+        manager.registerEvent(new SendRequestEvent(0, "user", "s1", new Request("user")));
+        manager.start();
+        Request.resetID();
+    }
+
+    public static void test2(){
+        ServiceManager manager = new ServiceManager();
+        Service s1 = new Service("s1", 500);
+        Service s2 = new Service("s2", 1000);
+        Service s3 = new Service("s3", 300);
+        s1.addDependence("s2");
+        s1.addDependence("s3");
+        Service user = new Service("user", 0);
+        manager.registerService(s1)
+                .registerService(s2)
+                .registerService(s3)
+                .registerService(user);
+        manager.registerEvent(new SendRequestEvent(0, "user", "s1", new Request("user")));
+        manager.start();
+        Request.resetID();
+    }
+
+    public static void test3(){
         ServiceManager manager = new ServiceManager();
         Service s0 = new Service("s0", 100);
         Service s1a = new Service("s1a", 500);
@@ -35,5 +68,12 @@ public class Main {
         manager.registerEvent(new SendRequestEvent(0,"user","s0",request));
 
         manager.start();
+        Request.resetID();
+    }
+    public static void main(String[] args) {
+	// write your code here
+        //test1();
+        //test2();
+        test3();
     }
 }

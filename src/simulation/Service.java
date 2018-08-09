@@ -5,11 +5,7 @@ import simulation.Events.FinishJobEvent;
 import simulation.Events.SendRequestEvent;
 import simulation.Events.SendResponseEvent;
 import simulation.Events.StartJobEvent;
-import simulation.Job;
-import simulation.Request;
-import simulation.ServiceManager;
 
-import java.text.DecimalFormat;
 import java.util.*;
 
 public class Service {
@@ -79,7 +75,7 @@ public class Service {
         }
         SendResponseEvent event = new SendResponseEvent(manager.getTime(), serviceName, target, response);
         manager.registerEvent(event);
-        Logger.Log("当前时间：%.2f，服务 %s 向服务 %s 发送响应，对应的请求ID为 %d", manager.getTime(), serviceName, target, reqID);
+        Logger.Log("当前时间：%.2f，服务 %s 向服务 %s 发送对请求 %d 的响应", manager.getTime(), serviceName, target, reqID);
     }
 
     public boolean isIdle(){
@@ -106,7 +102,7 @@ public class Service {
     public void receiveResponse(Response response){
         Request request = requests.get(response.getReqID());
         if (request != null){
-            Logger.Log("当前时间：%.2f，服务 %s 收到来自 %s 的响应，对应的请求ID为 %d"
+            Logger.Log("当前时间：%.2f，服务 %s 收到来自 %s 的响应，对应的前置请求ID为 %d"
                     ,manager.getTime()
                     ,serviceName
                     ,response.getSender()
