@@ -1,10 +1,10 @@
 package simulation;
 
-import Tool.Logger;
 import simulation.Events.FinishJobEvent;
 import simulation.Events.SendRequestEvent;
 import simulation.Events.SendResponseEvent;
 import simulation.Events.StartJobEvent;
+import simulation.Log.*;
 
 import java.util.*;
 
@@ -15,7 +15,7 @@ public class Service {
     private Map<Long, Request> requests;
     private List<String> dependence;
     private ServiceManager manager;
-    private List<State> workingLog;
+    private List<SimLog> workingLog;
 
     public Service(String serviceName, double processTime){
         this.serviceName = serviceName;
@@ -39,14 +39,12 @@ public class Service {
     }
     public void startJob(){
         Request request = jobQueue.peek();
-        Logger.Log("当前时间：%.2f，服务 %s 开始执行请求 %d", manager.getTime(), serviceName, request.getId());
-        workingLog.add(new State(manager.getTime(), serviceName, "start"));
+        record(new StartJobLog(manager.getTime(), serviceName, request.getId()));
         registerFinishJobEvent();
     }
     public void finishJob(){
         Request request = jobQueue.poll();
-        Logger.Log("当前时间：%.2f，服务 %s 结束执行请求 %d", manager.getTime(), serviceName, request.getId());
-        workingLog.add(new State(manager.getTime(), serviceName, "stop"));
+        record(new FinishJobLog(manager.getTime(), serviceName, request.getId()));
         if (dependence.isEmpty()){
             //直接向上级调用发送响应
             sendResponseToService(request.getSender(), request.getId(), request.getPreviousRequestID());
@@ -66,20 +64,20 @@ public class Service {
         Request request = new Request(manager.getTime(), serviceName, previousReqID);
         SendRequestEvent event = new SendRequestEvent(manager.getTime(),serviceName, target, request);
         manager.registerEvent(event);
-        Logger.Log("当前时间：%.2f，服务 %s 向服务 %s 发送请求，请求ID为 %d",manager.getTime(), serviceName, target, request.getId());
+        record(new SendRequestLog(manager.getTime(), serviceName, target, request.getId()));
     }
     private void sendResponseToService(String target, long reqID, long previousReqID){
         Response response;
         if (previousReqID >= 0){
-            response = new Response(serviceName, previousReqID);
+            response = new Response(serviceName, reqID, previousReqID);
         }
         else {
             //用户终端发出的请求
-            response = new Response(serviceName, reqID);
+            response = new Response(serviceName, reqID, -1);
         }
         SendResponseEvent event = new SendResponseEvent(manager.getTime(), serviceName, target, response);
         manager.registerEvent(event);
-        Logger.Log("当前时间：%.2f，服务 %s 向服务 %s 发送对请求 %d 的响应", manager.getTime(), serviceName, target, reqID);
+        record(new SendResponseLog(manager.getTime(), serviceName, target, reqID));
     }
 
     public boolean isIdle(){
@@ -96,7 +94,7 @@ public class Service {
         return this;
     }
     public void receiveRequest(Request request){
-        Logger.Log("当前时间：%.2f，服务 %s 收到来自 %s 的请求，请求ID为 %d",manager.getTime(), serviceName, request.getSender(), request.getId());
+        record(new ReceiveRequestLog(manager.getTime(), serviceName, request.getSender(), request.getId()));
         requests.put(request.getId(), request);
         if (isIdle()){
             registerStartJobEvent();
@@ -104,29 +102,25 @@ public class Service {
         jobQueue.add(request);
     }
     public void receiveResponse(Response response){
-        Request request = requests.get(response.getReqID());
-        if (request != null){
-            Logger.Log("当前时间：%.2f，服务 %s 收到来自 %s 的响应，对应的前置请求ID为 %d"
-                    ,manager.getTime()
-                    ,serviceName
-                    ,response.getSender()
-                    ,response.getReqID());
-            if (request.addCounter() >= dependence.size()){
-                //该请求已完成
-                Logger.Log("当前时间：%.2f，服务 %s 对请求 %d 的操作已完成，用时 %.2f", manager.getTime(), serviceName, request.getId(), manager.getTime() - request.getStartTime());
-                sendResponseToService(request.getSender(), request.getId(), request.getPreviousRequestID());
-                requests.remove(response.getReqID());
-            }
-        }
-        else {
-            Logger.Log("当前时间：%.2f，终端 %s 收到来自 %s 的响应，对应的请求ID为 %d", manager.getTime(), serviceName, response.getSender(), response.getReqID());
+        Request request = requests.get(response.getPreReqID());
+        record(new ReceiveResponseLog(manager.getTime(), serviceName, response.getSender(), response.getReqID(), response.getPreReqID()));
+        if (request != null && request.addCounter() >= dependence.size()){
+            //该服务不为终端并且该请求已完成
+            record(new FinishRequestLog(manager.getTime(), serviceName, request.getId(), manager.getTime()-request.getStartTime()));
+            sendResponseToService(request.getSender(), request.getId(), request.getPreviousRequestID());
+            requests.remove(response.getPreReqID());
         }
     }
     public void sendRequestAsEndpoint(double startTime, String target){
         Request request = new Request(startTime, serviceName);
         manager.registerEvent(new SendRequestEvent(startTime, serviceName, target, request));
+        record(new SendRequestLog(startTime, serviceName, target, request.getId()));
     }
-    public List<State> getWorkingLog(){
+    public List<SimLog> getWorkingLog(){
         return workingLog;
+    }
+    protected void record(SimLog simLog){
+        workingLog.add(simLog);
+        manager.record(simLog);
     }
 }

@@ -1,6 +1,7 @@
 package simulation;
 
 import simulation.Events.Event;
+import simulation.Log.SimLog;
 
 import java.util.*;
 
@@ -10,6 +11,7 @@ public class ServiceManager {
 
     private double time;
     private Queue<Event> eventQueue;
+    private List<SimLog> workingLog;
 
     ServiceManager(){
         registeredService = new HashMap<>();
@@ -17,6 +19,7 @@ public class ServiceManager {
 
         time = 0;
         eventQueue = new PriorityQueue<>();
+        workingLog = new LinkedList<>();
     }
 
     private Event nextEvent(){
@@ -58,5 +61,10 @@ public class ServiceManager {
     public Service findRegisteredService(String name){
         return registeredService.get(name);
     }
-
+    public void record(SimLog simLog){
+        workingLog.add(simLog);
+    }
+    public List<SimLog> getWorkingLog(){
+        return workingLog;
+    }
 }

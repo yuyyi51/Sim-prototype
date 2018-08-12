@@ -27,8 +27,8 @@ $RECYCLE.BIN/
 # Compiled class file
 *.class
 
-# Log file
-*.log
+# SimLog file
+*.simLog
 
 # BlueJ files
 *.ctxt
